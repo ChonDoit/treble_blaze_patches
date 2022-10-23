@@ -1,0 +1,40 @@
+From 5e23295824497e02ba8b09f9bb69ab3c324f77a6 Mon Sep 17 00:00:00 2001
+From: ChonDoit <thphantomblog@gmail.com>
+Date: Sat, 22 Oct 2022 19:36:26 +0000
+Subject: [PATCH] Revert "Udfps Icon ad animation adapt code for A12.1"
+
+This reverts commit 72b09c535e7e07acd23ffa83657bff6de43c23d3.
+---
+ .../src/com/android/systemui/biometrics/UdfpsAnimation.java     | 2 +-
+ .../src/com/android/systemui/biometrics/UdfpsController.java    | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsAnimation.java b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsAnimation.java
+index 3a94c3f4b923..12ab3ad8215d 100644
+--- a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsAnimation.java
++++ b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsAnimation.java
+@@ -98,7 +98,7 @@ public class UdfpsAnimation extends ImageView {
+                 | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                 | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS;
+         mAnimParams.gravity = Gravity.TOP | Gravity.CENTER;
+-        mAnimParams.y = props.getLocation().sensorLocationY - props.getLocation().sensorRadius
++        mAnimParams.y = props.sensorLocationY - props.sensorRadius
+                 - (mAnimationSize / 2) + mAnimationOffset;
+ 
+         try {
+diff --git a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
+index 1deacb7d3c6b..17b63c55a159 100644
+--- a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
++++ b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
+@@ -859,7 +859,7 @@ public class UdfpsController implements DozeReceiver {
+ 
+         if (mUdfpsAnimation != null) {
+             mUdfpsAnimation.setIsKeyguard(reason ==
+-                    BiometricOverlayConstants.REASON_AUTH_KEYGUARD);
++                    IUdfpsOverlayController.REASON_AUTH_FPM_KEYGUARD);
+         }
+ 
+         if (mView == null) {
+-- 
+2.34.1
+

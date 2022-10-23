@@ -1,0 +1,66 @@
+From d34df339331a356c5bee472efdda7a99cd9f2626 Mon Sep 17 00:00:00 2001
+From: ChonDoit <thphantomblog@gmail.com>
+Date: Sat, 22 Oct 2022 19:42:20 +0000
+Subject: [PATCH] Revert "udfps: Allow devices to pulse onFingerDown instead of
+ waking the screen"
+
+This reverts commit 62157e74019f22e49ee0697a4035b4c3f28488f6.
+---
+ packages/SystemUI/res/values/blaze_config.xml         |  4 ----
+ .../android/systemui/biometrics/UdfpsController.java  | 11 ++---------
+ 2 files changed, 2 insertions(+), 13 deletions(-)
+
+diff --git a/packages/SystemUI/res/values/blaze_config.xml b/packages/SystemUI/res/values/blaze_config.xml
+index 78266c08e101..626c1d265b2d 100644
+--- a/packages/SystemUI/res/values/blaze_config.xml
++++ b/packages/SystemUI/res/values/blaze_config.xml
+@@ -31,10 +31,6 @@
+     <!-- Udfps vendor code -->
+     <integer name="config_udfpsVendorCode">0</integer>
+ 
+-    <!-- Whether to pulse onFingerDown actions instead
+-        of waking the screen while the screen is off or in lpm. -->
+-    <bool name="config_pulseOnFingerDown">false</bool>
+-
+     <!-- Max visible notification icons -->
+     <integer name="config_maxVisibleNotificationIcons">4</integer>
+     <integer name="config_maxVisibleNotificationIconsOnLock">5</integer>
+diff --git a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
+index 4d6b743b7e3e..f8ee23f62647 100644
+--- a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
++++ b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
+@@ -47,7 +47,6 @@ import android.os.RemoteException;
+ import android.os.Trace;
+ import android.os.VibrationEffect;
+ import android.os.Vibrator;
+-import android.os.UserHandle;
+ import android.util.Log;
+ import android.view.Gravity;
+ import android.view.LayoutInflater;
+@@ -103,7 +102,6 @@ import kotlin.Unit;
+ @SysUISingleton
+ public class UdfpsController implements DozeReceiver {
+     private static final String TAG = "UdfpsController";
+-    private static final String PULSE_ACTION = "com.android.systemui.doze.pulse";
+     private static final long AOD_INTERRUPT_TIMEOUT_MILLIS = 1000;
+     private static final long DEFAULT_VIBRATION_DURATION = 1000; // milliseconds
+ 
+@@ -329,13 +327,8 @@ public class UdfpsController implements DozeReceiver {
+             mFgExecutor.execute(() -> {
+                 if (acquiredInfo == 6 && (mStatusBarStateController.isDozing() || !mScreenOn)) {
+                     if (vendorCode == mUdfpsVendorCode) {
+-                        if (mContext.getResources().getBoolean(R.bool.config_pulseOnFingerDown)) {
+-                            mContext.sendBroadcastAsUser(new Intent(PULSE_ACTION),
+-                                    new UserHandle(UserHandle.USER_CURRENT));
+-                        } else {
+-                            mPowerManager.wakeUp(mSystemClock.uptimeMillis(),
+-                                    PowerManager.WAKE_REASON_GESTURE, TAG);
+-                        }
++                        mPowerManager.wakeUp(mSystemClock.uptimeMillis(),
++                                PowerManager.WAKE_REASON_GESTURE, TAG);
+                         onAodInterrupt(0, 0, 0, 0); // To-Do pass proper values
+                     }
+                 }
+-- 
+2.34.1
+

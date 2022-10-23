@@ -1,0 +1,46 @@
+From 3e754b4db7c69ecbe8d5baaaed22e7165f6a2293 Mon Sep 17 00:00:00 2001
+From: ChonDoit <thphantomblog@gmail.com>
+Date: Sun, 23 Oct 2022 17:05:33 +0000
+Subject: [PATCH] Revert "BlazeHouse: Allow toggling screen off FOD [2/2]"
+
+This reverts commit 0baf9076212420e10c4a171f55363f0634c2dcb0.
+---
+ res/values/strings.xml | 4 ----
+ res/xml/udfps.xml      | 6 ------
+ 2 files changed, 10 deletions(-)
+
+diff --git a/res/values/strings.xml b/res/values/strings.xml
+index f6fd85d..cfef67c 100644
+--- a/res/values/strings.xml
++++ b/res/values/strings.xml
+@@ -322,10 +322,6 @@
+     <string name="toast_icon_title">Toast app icon</string>
+     <string name="toast_icon_summary">Display the app\'s icon corresponding with the toast</string>
+ 
+-    <!-- Screen off FOD -->
+-    <string name="screen_off_fod_title">Screen off FOD</string>
+-    <string name="screen_off_fod_summary">Keep FOD enabled when the screen is off</string>
+-
+     <!-- QS Transparency -->
+     <string name="qs_transparency_title">QS Transparency</string>
+     <string name="qs_transparency_summary">Choose how transparent you want your QS Panel to be (Requires SystemUI)</string>
+diff --git a/res/xml/udfps.xml b/res/xml/udfps.xml
+index a5bb751..34a5fa2 100644
+--- a/res/xml/udfps.xml
++++ b/res/xml/udfps.xml
+@@ -30,12 +30,6 @@
+             android:summary="@string/udfps_recog_animation_effect_summary"
+             android:fragment="com.blaze.house.fragments.UdfpsAnimation" />
+ 
+-	<com.blaze.house.preferences.SystemSettingSwitchPreference
+-            android:key="screen_off_fod"
+-            android:title="@string/screen_off_fod_title"
+-            android:summary="@string/screen_off_fod_summary"
+-            android:defaultValue="false" />
+-
+     </PreferenceCategory>
+ 
+ </PreferenceScreen>
+-- 
+2.34.1
+

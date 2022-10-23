@@ -1,0 +1,40 @@
+From c3b416ace9e47ac42a31b3016868979f112b3d42 Mon Sep 17 00:00:00 2001
+From: ChonDoit <thphantomblog@gmail.com>
+Date: Sat, 22 Oct 2022 19:48:10 +0000
+Subject: [PATCH] Revert "udfps: Change window type to TYPE_DISPLAY_OVERLAY"
+
+This reverts commit abaff6eebe16935013255b05f8ac2d8b0369455a.
+---
+ .../src/com/android/systemui/biometrics/AuthContainerView.java  | 2 +-
+ .../src/com/android/systemui/biometrics/UdfpsController.java    | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/packages/SystemUI/src/com/android/systemui/biometrics/AuthContainerView.java b/packages/SystemUI/src/com/android/systemui/biometrics/AuthContainerView.java
+index fb5a948c6716..fd37b3509a4e 100644
+--- a/packages/SystemUI/src/com/android/systemui/biometrics/AuthContainerView.java
++++ b/packages/SystemUI/src/com/android/systemui/biometrics/AuthContainerView.java
+@@ -793,7 +793,7 @@ public class AuthContainerView extends LinearLayout
+         final WindowManager.LayoutParams lp = new WindowManager.LayoutParams(
+                 ViewGroup.LayoutParams.MATCH_PARENT,
+                 ViewGroup.LayoutParams.MATCH_PARENT,
+-                WindowManager.LayoutParams.TYPE_DISPLAY_OVERLAY,
++                WindowManager.LayoutParams.TYPE_STATUS_BAR_SUB_PANEL,
+                 windowFlags,
+                 PixelFormat.TRANSLUCENT);
+         lp.privateFlags |= WindowManager.LayoutParams.SYSTEM_FLAG_SHOW_FOR_ALL_USERS;
+diff --git a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
+index c84d74ebdb7b..250c16c81eac 100644
+--- a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
++++ b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
+@@ -623,7 +623,7 @@ public class UdfpsController implements DozeReceiver {
+                 });
+ 
+         mCoreLayoutParams = new WindowManager.LayoutParams(
+-                WindowManager.LayoutParams.TYPE_DISPLAY_OVERLAY,
++                WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG,
+                 0 /* flags set in computeLayoutParams() */,
+                 PixelFormat.TRANSLUCENT);
+         mCoreLayoutParams.setTitle(TAG);
+-- 
+2.34.1
+

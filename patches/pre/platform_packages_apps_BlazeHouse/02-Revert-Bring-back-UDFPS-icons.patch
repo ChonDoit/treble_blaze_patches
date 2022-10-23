@@ -1,0 +1,583 @@
+From ba0988b42fa5bb1865eba2bf0d8e8dda0f68e7ac Mon Sep 17 00:00:00 2001
+From: ChonDoit <thphantomblog@gmail.com>
+Date: Sun, 23 Oct 2022 17:09:14 +0000
+Subject: [PATCH] Revert "BlazeHouse: Bring back UDFPS icons and Animations
+ [2/3]"
+
+This reverts commit 35ba7aaf43d5ac9e9a604fc41232240bbaf93f75.
+---
+ res/values/strings.xml                        |  13 +-
+ res/xml/udfps.xml                             |  18 --
+ src/com/blaze/house/fragments/Udfps.java      |   9 -
+ .../blaze/house/fragments/UdfpsAnimation.java | 257 ------------------
+ .../house/fragments/UdfpsIconPicker.java      | 210 --------------
+ 5 files changed, 1 insertion(+), 506 deletions(-)
+ delete mode 100644 src/com/blaze/house/fragments/UdfpsAnimation.java
+ delete mode 100644 src/com/blaze/house/fragments/UdfpsIconPicker.java
+
+diff --git a/res/values/strings.xml b/res/values/strings.xml
+index cfef67c..7445ac8 100644
+--- a/res/values/strings.xml
++++ b/res/values/strings.xml
+@@ -299,19 +299,7 @@
+     <!-- UDFPS Haptic Feedback -->
+     <string name="udfps_haptic_feedback_title">UDFPS haptic feedback</string>
+     <string name="udfps_haptic_feedback_summary">Vibrate when touching UDFPS icon</string>
+-
+-    <!-- UDFPS Recog Animation -->
+-    <string name="udfps_customization">UDFPS customization</string>
+-    <string name="udfps_recog_animation">UDFPS animation</string>
+-    <string name="udfps_recog_animation_summary">Shows an animation while reading your finger</string>
+-    <string name="udfps_recog_animation_effect_title">UDFPS custom animation</string>
+-    <string name="udfps_recog_animation_effect_summary">Choose animation effect</string>
+     <string name="udfps_settings_title">UDFPS settings</string>
+-    <string name="udfps_settings_summary">Settings for customizing the UDFPS</string>
+-
+-    <!-- UDFPS icon picker -->
+-    <string name="udfps_icon_picker_title">UDFPS icon picker</string>
+-    <string name="udfps_icon_picker_summary">Choose your favorite fingerprint icon</string>  
+ 
+     <!-- Ignore secure window -->
+     <string name="developer_options_category">Developer Options</string>
+@@ -477,4 +465,5 @@
+     <string name="ticker_animation_mode_alpha_fade">Fade</string>
+     <string name="ticker_animation_mode_scroll">Scroll</string>
+     <string name="ticker_tick_duration_title">Ticker duration</string>
++    <string name="udfps_settings_summary">Customizations for the UDFPS</string>
+ </resources>
+diff --git a/res/xml/udfps.xml b/res/xml/udfps.xml
+index 34a5fa2..b4e6dac 100644
+--- a/res/xml/udfps.xml
++++ b/res/xml/udfps.xml
+@@ -14,22 +14,4 @@
+         android:summary="@string/udfps_haptic_feedback_summary"
+         android:defaultValue="true" />
+ 
+-    <PreferenceCategory
+-        android:key="udfps_customization"
+-        android:title="@string/udfps_customization">
+-
+-        <Preference
+-            android:key="udfps_icon_picker"
+-            android:title="@string/udfps_icon_picker_title"
+-            android:summary="@string/udfps_icon_picker_summary"
+-            android:fragment="com.blaze.house.fragments.UdfpsIconPicker" />
+-
+-        <Preference
+-            android:key="udfps_recognizing_animation_preview"
+-            android:title="@string/udfps_recog_animation_effect_title"
+-            android:summary="@string/udfps_recog_animation_effect_summary"
+-            android:fragment="com.blaze.house.fragments.UdfpsAnimation" />
+-
+-    </PreferenceCategory>
+-
+ </PreferenceScreen>
+diff --git a/src/com/blaze/house/fragments/Udfps.java b/src/com/blaze/house/fragments/Udfps.java
+index ba94f6b..83ca00e 100644
+--- a/src/com/blaze/house/fragments/Udfps.java
++++ b/src/com/blaze/house/fragments/Udfps.java
+@@ -48,8 +48,6 @@ import com.android.settingslib.search.SearchIndexable;
+ public class Udfps extends SettingsPreferenceFragment implements
+         Preference.OnPreferenceChangeListener {
+ 
+-    private static final String UDFPS_CUSTOMIZATION = "udfps_customization";
+-	private PreferenceCategory mUdfpsCustomization;
+ 
+     @Override
+     public void onCreate(Bundle icicle) {
+@@ -59,13 +57,6 @@ public class Udfps extends SettingsPreferenceFragment implements
+         final PreferenceScreen prefSet = getPreferenceScreen();
+         Resources resources = getResources();
+ 
+-	final boolean udfpsResPkgInstalled = BlazeUtils.isPackageInstalled(getContext(),
+-                "com.blaze.udfps.resources");
+-	mUdfpsCustomization = (PreferenceCategory) findPreference(UDFPS_CUSTOMIZATION);
+-        if (!udfpsResPkgInstalled) {
+-            prefSet.removePreference(mUdfpsCustomization);
+-        }
+-
+     }
+ 
+     @Override
+diff --git a/src/com/blaze/house/fragments/UdfpsAnimation.java b/src/com/blaze/house/fragments/UdfpsAnimation.java
+deleted file mode 100644
+index 355e22f..0000000
+--- a/src/com/blaze/house/fragments/UdfpsAnimation.java
++++ /dev/null
+@@ -1,257 +0,0 @@
+-/*
+- * Copyright (C) 2021 AospExtended ROM Project
+- *
+- * Licensed under the Apache License, Version 2.0 (the "License");
+- * you may not use this file except in compliance with the License.
+- * You may obtain a copy of the License at
+- *
+- *      http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-package com.blaze.house.fragments;
+-
+-import android.content.ContentResolver;
+-import android.content.Context;
+-import android.content.pm.PackageManager;
+-import android.content.res.Resources;
+-import android.graphics.drawable.AnimationDrawable;
+-import android.graphics.drawable.Drawable;
+-import android.net.Uri;
+-import android.os.Bundle;
+-import android.provider.SearchIndexableResource;
+-import android.provider.Settings;
+-import android.text.TextUtils;
+-import android.view.Gravity;
+-import android.view.LayoutInflater;
+-import android.view.View;
+-import android.view.ViewGroup.LayoutParams;
+-import android.view.ViewGroup;
+-import android.widget.FrameLayout;
+-import android.widget.ImageView;
+-import android.widget.LinearLayout;
+-import android.widget.Switch;
+-import android.widget.TextView;
+-import android.widget.Toast;
+-
+-import androidx.annotation.NonNull;
+-import androidx.annotation.Nullable;
+-import androidx.core.content.res.ResourcesCompat;
+-import androidx.preference.Preference.OnPreferenceChangeListener;
+-import androidx.preference.Preference;
+-import androidx.preference.PreferenceScreen;
+-import androidx.preference.PreferenceViewHolder;
+-import androidx.recyclerview.widget.GridLayoutManager;
+-import androidx.recyclerview.widget.RecyclerView.ViewHolder;
+-import androidx.recyclerview.widget.RecyclerView;
+-
+-import com.bumptech.glide.Glide;
+-
+-import com.android.internal.logging.nano.MetricsProto.MetricsEvent;
+-import com.android.settings.R;
+-import com.android.settings.SettingsActivity;
+-import com.android.settings.SettingsPreferenceFragment;
+-import com.android.settings.search.BaseSearchIndexProvider;
+-import com.android.settings.widget.SettingsMainSwitchBar;
+-import com.android.settingslib.search.Indexable;
+-import com.android.settingslib.widget.OnMainSwitchChangeListener;
+-
+-import java.util.ArrayList;
+-import java.util.Arrays;
+-import java.util.List;
+-
+-import org.json.JSONException;
+-import org.json.JSONObject;
+-
+-public class UdfpsAnimation extends SettingsPreferenceFragment implements
+-        OnMainSwitchChangeListener {
+-
+-    private Switch mSwitch;
+-
+-    private RecyclerView mRecyclerView;
+-    private String mPkg = "com.blaze.udfps.resources";
+-    private AnimationDrawable animation;
+-
+-    private Resources udfpsRes;
+-
+-    private String[] mAnims;
+-    private String[] mAnimPreviews;
+-    private String[] mTitles;
+-
+-    private boolean mEnabled;
+-    private UdfpsAnimAdapter mUdfpsAnimAdapter;
+-
+-    @Override
+-    public void onCreate(Bundle savedInstanceState) {
+-        super.onCreate(savedInstanceState);
+-        getActivity().setTitle(R.string.udfps_recog_animation_effect_title);
+-
+-        loadResources();
+-    }
+-
+-    private void loadResources() {
+-        try {
+-            PackageManager pm = getActivity().getPackageManager();
+-            udfpsRes = pm.getResourcesForApplication(mPkg);
+-        } catch (PackageManager.NameNotFoundException e) {
+-            e.printStackTrace();
+-        }
+-
+-        mAnims = udfpsRes.getStringArray(udfpsRes.getIdentifier("udfps_animation_styles",
+-                "array", mPkg));
+-        mAnimPreviews = udfpsRes.getStringArray(udfpsRes.getIdentifier("udfps_animation_previews",
+-                "array", mPkg));
+-        mTitles = udfpsRes.getStringArray(udfpsRes.getIdentifier("udfps_animation_titles",
+-                "array", mPkg));
+-    }
+-
+-    @Override
+-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+-            @Nullable Bundle savedInstanceState) {
+-        View view = inflater.inflate(
+-                R.layout.item_view, container, false);
+-
+-        mRecyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
+-        GridLayoutManager gridLayoutManager = new GridLayoutManager(getActivity(), 3);
+-        mRecyclerView.setLayoutManager(gridLayoutManager);
+-        mUdfpsAnimAdapter = new UdfpsAnimAdapter(getActivity());
+-
+-        return view;
+-    }
+-
+-    @Override
+-    public void onActivityCreated(Bundle savedInstanceState) {
+-        super.onActivityCreated(savedInstanceState);
+-        final SettingsActivity activity = (SettingsActivity) getActivity();
+-        final SettingsMainSwitchBar switchBar = activity.getSwitchBar();
+-        mSwitch = switchBar.getSwitch();
+-        mEnabled = Settings.System.getInt(getActivity().getContentResolver(),
+-                       Settings.System.UDFPS_ANIM, 0) == 1;
+-        mSwitch.setChecked(mEnabled);
+-        setEnabled(mEnabled);
+-        switchBar.setTitle(getActivity().getString(R.string.udfps_recog_animation));
+-        switchBar.addOnSwitchChangeListener(this);
+-        switchBar.show();
+-    }
+-
+-    @Override
+-    public void onSwitchChanged(Switch switchView, boolean isChecked) {
+-        Settings.System.putInt(getActivity().getContentResolver(),
+-                Settings.System.UDFPS_ANIM, isChecked ? 1 : 0);
+-        mSwitch.setChecked(isChecked);
+-        setEnabled(isChecked);
+-    }
+-
+-    public void setEnabled(boolean enabled) {
+-        if (enabled) {
+-            mRecyclerView.setAdapter(mUdfpsAnimAdapter);
+-        } else {
+-            mRecyclerView.setAdapter(null);
+-        }
+-    }
+-
+-    @Override
+-    public int getMetricsCategory() {
+-        return MetricsEvent.BLAZE_HOUSE;
+-    }
+-
+-    @Override
+-    public void onResume() {
+-        super.onResume();
+-    }
+-
+-    public class UdfpsAnimAdapter extends RecyclerView.Adapter<UdfpsAnimAdapter.UdfpsAnimViewHolder> {
+-        Context context;
+-        String mSelectedAnim;
+-        String mAppliedAnim;
+-
+-        public UdfpsAnimAdapter(Context context) {
+-            this.context = context;
+-        }
+-
+-        @Override
+-        public UdfpsAnimViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+-            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_option, parent, false);
+-            UdfpsAnimViewHolder vh = new UdfpsAnimViewHolder(v);
+-            return vh;
+-        }
+-
+-        @Override
+-        public void onBindViewHolder(UdfpsAnimViewHolder holder, final int position) {
+-            String animName = mAnims[position];
+-
+-            Glide.with(holder.image.getContext())
+-                    .load("")
+-                    .placeholder(getDrawable(holder.image.getContext(), mAnimPreviews[position]))
+-                    .into(holder.image);
+-
+-            holder.name.setText(mTitles[position]);
+-
+-            if (position == Settings.System.getInt(context.getContentResolver(),
+-                Settings.System.UDFPS_ANIM_STYLE, 0)) {
+-                mAppliedAnim = animName;
+-                if (mSelectedAnim == null) {
+-                    mSelectedAnim = animName;
+-                }
+-            }
+-
+-            holder.itemView.setActivated(animName == mSelectedAnim);
+-            holder.itemView.setOnClickListener(new View.OnClickListener() {
+-                @Override
+-                public void onClick(View v) {
+-                    updateActivatedStatus(mSelectedAnim, false);
+-                    updateActivatedStatus(animName, true);
+-                    mSelectedAnim = animName;
+-                    holder.image.setBackgroundDrawable(getDrawable(v.getContext(), mAnims[position]));
+-                    animation = (AnimationDrawable) holder.image.getBackground();
+-                    animation.setOneShot(true);
+-                    animation.start();
+-                    Settings.System.putInt(getActivity().getContentResolver(),
+-                            Settings.System.UDFPS_ANIM_STYLE, position);
+-                }
+-            });
+-        }
+-
+-        @Override
+-        public int getItemCount() {
+-            return mAnims.length;
+-        }
+-
+-        public class UdfpsAnimViewHolder extends RecyclerView.ViewHolder {
+-            TextView name;
+-            ImageView image;
+-            public UdfpsAnimViewHolder(View itemView) {
+-                super(itemView);
+-                name = (TextView) itemView.findViewById(R.id.option_label);
+-                image = (ImageView) itemView.findViewById(R.id.option_thumbnail);
+-            }
+-        }
+-
+-        private void updateActivatedStatus(String anim, boolean isActivated) {
+-            int index = Arrays.asList(mAnims).indexOf(anim);
+-            if (index < 0) {
+-                return;
+-            }
+-            RecyclerView.ViewHolder holder = mRecyclerView.findViewHolderForAdapterPosition(index);
+-            if (holder != null && holder.itemView != null) {
+-                holder.itemView.setActivated(isActivated);
+-            }
+-        }
+-    }
+-
+-    public Drawable getDrawable(Context context, String drawableName) {
+-        try {
+-            PackageManager pm = context.getPackageManager();
+-            Resources res = pm.getResourcesForApplication(mPkg);
+-            return res.getDrawable(res.getIdentifier(drawableName, "drawable", mPkg));
+-        }
+-        catch (PackageManager.NameNotFoundException e) {
+-            e.printStackTrace();
+-        }
+-        return null;
+-    }
+-}
+diff --git a/src/com/blaze/house/fragments/UdfpsIconPicker.java b/src/com/blaze/house/fragments/UdfpsIconPicker.java
+deleted file mode 100644
+index 060f2dc..0000000
+--- a/src/com/blaze/house/fragments/UdfpsIconPicker.java
++++ /dev/null
+@@ -1,210 +0,0 @@
+-/*
+- * Copyright (C) 2021 AospExtended ROM Project
+- *
+- * Licensed under the Apache License, Version 2.0 (the "License");
+- * you may not use this file except in compliance with the License.
+- * You may obtain a copy of the License at
+- *
+- *      http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-package com.blaze.house.fragments;
+-
+-import android.content.ContentResolver;
+-import android.content.Context;
+-import android.content.pm.PackageManager;
+-import android.content.res.Resources;
+-import android.graphics.drawable.AnimationDrawable;
+-import android.graphics.drawable.Drawable;
+-import android.os.Bundle;
+-import android.net.Uri;
+-import android.provider.SearchIndexableResource;
+-import android.provider.Settings;
+-import android.text.TextUtils;
+-import android.view.Gravity;
+-import android.view.LayoutInflater;
+-import android.view.View;
+-import android.view.ViewGroup.LayoutParams;
+-import android.view.ViewGroup;
+-import android.widget.FrameLayout;
+-import android.widget.ImageView;
+-import android.widget.LinearLayout;
+-import android.widget.TextView;
+-import android.widget.Toast;
+-
+-import androidx.annotation.NonNull;
+-import androidx.annotation.Nullable;
+-import androidx.core.content.res.ResourcesCompat;
+-import androidx.preference.Preference.OnPreferenceChangeListener;
+-import androidx.preference.Preference;
+-import androidx.preference.PreferenceScreen;
+-import androidx.preference.PreferenceViewHolder;
+-import androidx.recyclerview.widget.GridLayoutManager;
+-import androidx.recyclerview.widget.RecyclerView.ViewHolder;
+-import androidx.recyclerview.widget.RecyclerView;
+-
+-import com.bumptech.glide.Glide;
+-
+-import com.android.internal.logging.nano.MetricsProto.MetricsEvent;
+-import com.android.settings.R;
+-import com.android.settings.SettingsPreferenceFragment;
+-import com.android.settings.search.BaseSearchIndexProvider;
+-import com.android.settingslib.search.Indexable;
+-
+-import java.util.ArrayList;
+-import java.util.Arrays;
+-import java.util.List;
+-
+-import org.json.JSONException;
+-import org.json.JSONObject;
+-
+-public class UdfpsIconPicker extends SettingsPreferenceFragment {
+-
+-    private RecyclerView mRecyclerView;
+-
+-    private Resources udfpsRes;
+-
+-    private String mPkg = "com.blaze.udfps.resources";
+-
+-    private String[] mIcons;
+-
+-    @Override
+-    public void onCreate(Bundle savedInstanceState) {
+-        super.onCreate(savedInstanceState);
+-        getActivity().setTitle(R.string.udfps_icon_picker_title);
+-
+-        loadResources();
+-    }
+-
+-    private void loadResources() {
+-        try {
+-            PackageManager pm = getActivity().getPackageManager();
+-            udfpsRes = pm.getResourcesForApplication(mPkg);
+-        } catch (PackageManager.NameNotFoundException e) {
+-            e.printStackTrace();
+-        }
+-
+-        mIcons = udfpsRes.getStringArray(udfpsRes.getIdentifier("udfps_icons",
+-                "array", mPkg));
+-    }
+-
+-    @Override
+-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+-            @Nullable Bundle savedInstanceState) {
+-        View view = inflater.inflate(
+-                R.layout.item_view, container, false);
+-
+-        mRecyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
+-        GridLayoutManager gridLayoutManager = new GridLayoutManager(getActivity(), 3);
+-        mRecyclerView.setLayoutManager(gridLayoutManager);
+-        UdfpsIconAdapter mUdfpsIconAdapter = new UdfpsIconAdapter(getActivity());
+-        mRecyclerView.setAdapter(mUdfpsIconAdapter);
+-
+-        return view;
+-    }
+-
+-    @Override
+-    public int getMetricsCategory() {
+-        return MetricsEvent.BLAZE_HOUSE;
+-    }
+-
+-    @Override
+-    public void onResume() {
+-        super.onResume();
+-    }
+-
+-    public class UdfpsIconAdapter extends RecyclerView.Adapter<UdfpsIconAdapter.UdfpsIconViewHolder> {
+-        Context context;
+-        String mSelectedIcon;
+-        String mAppliedIcon;
+-
+-        public UdfpsIconAdapter(Context context) {
+-            this.context = context;
+-        }
+-
+-        @Override
+-        public UdfpsIconViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+-            View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_option, parent, false);
+-            UdfpsIconViewHolder vh = new UdfpsIconViewHolder(v);
+-            return vh;
+-        }
+-
+-        @Override
+-        public void onBindViewHolder(UdfpsIconViewHolder holder, final int position) {
+-            String iconRes = mIcons[position];
+-
+-            Glide.with(holder.image.getContext())
+-                    .load("")
+-                    .placeholder(getDrawable(holder.image.getContext(), mIcons[position]))
+-                    .into(holder.image);
+-
+-            holder.image.setPadding(20,20,20,20);
+-
+-            holder.name.setVisibility(View.GONE);
+-
+-            if (position == Settings.System.getInt(context.getContentResolver(),
+-                Settings.System.UDFPS_ICON, 0)) {
+-                mAppliedIcon = iconRes;
+-                if (mSelectedIcon == null) {
+-                    mSelectedIcon = iconRes;
+-                }
+-            }
+-            holder.itemView.setActivated(iconRes == mSelectedIcon);
+-            holder.itemView.setOnClickListener(new View.OnClickListener() {
+-                @Override
+-                public void onClick(View v) {
+-                    updateActivatedStatus(mSelectedIcon, false);
+-                    updateActivatedStatus(iconRes, true);
+-                    mSelectedIcon = iconRes;
+-                    Settings.System.putInt(getActivity().getContentResolver(),
+-                            Settings.System.UDFPS_ICON, position);
+-                }
+-            });
+-        }
+-
+-        @Override
+-        public int getItemCount() {
+-            return mIcons.length;
+-        }
+-
+-        public class UdfpsIconViewHolder extends RecyclerView.ViewHolder {
+-            TextView name;
+-            ImageView image;
+-            public UdfpsIconViewHolder(View itemView) {
+-                super(itemView);
+-                name = (TextView) itemView.findViewById(R.id.option_label);
+-                image = (ImageView) itemView.findViewById(R.id.option_thumbnail);
+-            }
+-        }
+-
+-        private void updateActivatedStatus(String icon, boolean isActivated) {
+-            int index = Arrays.asList(mIcons).indexOf(icon);
+-            if (index < 0) {
+-                return;
+-            }
+-            RecyclerView.ViewHolder holder = mRecyclerView.findViewHolderForAdapterPosition(index);
+-            if (holder != null && holder.itemView != null) {
+-                holder.itemView.setActivated(isActivated);
+-            }
+-        }
+-    }
+-
+-    public Drawable getDrawable(Context context, String drawableName) {
+-        try {
+-            PackageManager pm = context.getPackageManager();
+-            Resources res = pm.getResourcesForApplication(mPkg);
+-            Context ctx = context.createPackageContext(
+-                    mPkg, Context.CONTEXT_IGNORE_SECURITY);
+-            return ctx.getDrawable(res.getIdentifier(drawableName, "drawable", mPkg));
+-        }
+-        catch (PackageManager.NameNotFoundException e) {
+-            e.printStackTrace();
+-        }
+-        return null;
+-    }
+-}
+-- 
+2.34.1
+

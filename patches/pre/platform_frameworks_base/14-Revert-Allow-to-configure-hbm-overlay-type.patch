@@ -1,0 +1,64 @@
+From 4ae19d4c4d38a7100e5d0d704d9c252575ed7199 Mon Sep 17 00:00:00 2001
+From: ChonDoit <thphantomblog@gmail.com>
+Date: Sat, 22 Oct 2022 19:47:42 +0000
+Subject: [PATCH] Revert "udfps: Allow to configure hbm overlay type"
+
+This reverts commit bedf790e67a485b58182ffc75e4beabe63d9547a.
+---
+ packages/SystemUI/res/values/blaze_config.xml             | 8 ++------
+ .../src/com/android/systemui/biometrics/UdfpsView.java    | 7 +++----
+ 2 files changed, 5 insertions(+), 10 deletions(-)
+
+diff --git a/packages/SystemUI/res/values/blaze_config.xml b/packages/SystemUI/res/values/blaze_config.xml
+index 1091b5429bef..20cf45bf32d1 100644
+--- a/packages/SystemUI/res/values/blaze_config.xml
++++ b/packages/SystemUI/res/values/blaze_config.xml
+@@ -19,12 +19,6 @@
+     <!-- Color of the UDFPS pressed view -->
+     <color name="config_udfpsColor">#ffffffff</color>
+ 
+-    <!-- HBM type of UDFPS overlay.
+-            0 - GLOBAL HBM
+-            1 - LOCAL HBM
+-    -->
+-    <integer name="config_udfpsHbmType">1</integer>
+-
+     <!-- Max visible notification icons -->
+     <integer name="config_maxVisibleNotificationIcons">4</integer>
+     <integer name="config_maxVisibleNotificationIconsOnLock">5</integer>
+@@ -56,4 +50,6 @@
+     <!--The number of columns in the QSPanel -->
+     <integer name="qs_panel_num_columns">4</integer>
+     <integer name="qs_panel_num_columns_landscape">6</integer>
++=======
++>>>>>>> parent of bedf790e67a4 (udfps: Allow to configure hbm overlay type)
+ </resources>
+diff --git a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsView.java b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsView.java
+index ee4cb15de410..6d31ef0e7701 100644
+--- a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsView.java
++++ b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsView.java
+@@ -51,6 +51,7 @@ public class UdfpsView extends FrameLayout implements DozeReceiver, UdfpsIllumin
+ 
+     private static final String SETTING_HBM_TYPE =
+             "com.android.systemui.biometrics.UdfpsSurfaceView.hbmType";
++    private static final @HbmType int DEFAULT_HBM_TYPE = UdfpsHbmTypes.LOCAL_HBM;
+ 
+     private static final int DEBUG_TEXT_SIZE_PX = 32;
+ 
+@@ -98,11 +99,9 @@ public class UdfpsView extends FrameLayout implements DozeReceiver, UdfpsIllumin
+ 
+         if (Build.IS_ENG || Build.IS_USERDEBUG) {
+             mHbmType = Settings.Secure.getIntForUser(mContext.getContentResolver(),
+-                    SETTING_HBM_TYPE,
+-                    mContext.getResources().getInteger(R.integer.config_udfpsHbmType),
+-                    UserHandle.USER_CURRENT);
++                    SETTING_HBM_TYPE, DEFAULT_HBM_TYPE, UserHandle.USER_CURRENT);
+         } else {
+-            mHbmType = mContext.getResources().getInteger(R.integer.config_udfpsHbmType);
++            mHbmType = DEFAULT_HBM_TYPE;
+         }
+     }
+ 
+-- 
+2.34.1
+

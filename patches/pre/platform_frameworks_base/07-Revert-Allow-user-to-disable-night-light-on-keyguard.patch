@@ -1,0 +1,113 @@
+From 3335d7f6e1c2ac593f3619aa028e92a36dd344ee Mon Sep 17 00:00:00 2001
+From: ChonDoit <thphantomblog@gmail.com>
+Date: Sat, 22 Oct 2022 19:41:16 +0000
+Subject: [PATCH] Revert "UDFPS: Allow user to disable night light on keyguard"
+
+This reverts commit ebf524a5efbc20b0d118a1448abe19c7e8c62c62.
+---
+ core/res/res/values/blaze_config.xml          |  5 +---
+ core/res/res/values/blaze_symbols.xml         |  3 --
+ .../systemui/biometrics/UdfpsController.java  | 29 -------------------
+ 3 files changed, 1 insertion(+), 36 deletions(-)
+
+diff --git a/core/res/res/values/blaze_config.xml b/core/res/res/values/blaze_config.xml
+index 5d1d49fd2e8e..bc8eeea7015c 100644
+--- a/core/res/res/values/blaze_config.xml
++++ b/core/res/res/values/blaze_config.xml
+@@ -69,10 +69,7 @@
+ 
+     <!-- Switch USB controller on Asus ROG devices-->
+     <bool name="config_switchUsbController">false</bool>
+-
+-    <!-- Whether to disable Night Light on Udfps keyguard -->
+-    <bool name="config_udfpsDisableNightLight">false</bool>
+-
++    
+     <!-- Whether device supports gaming mode profiles -->
+     <bool name="config_gamingmode_performance">false</bool>
+ 
+diff --git a/core/res/res/values/blaze_symbols.xml b/core/res/res/values/blaze_symbols.xml
+index 2640fc5edba1..2dcd32dcb113 100644
+--- a/core/res/res/values/blaze_symbols.xml
++++ b/core/res/res/values/blaze_symbols.xml
+@@ -57,9 +57,6 @@
+     <!-- Switch USB controller on Asus ROG devices-->
+     <java-symbol type="bool" name="config_switchUsbController" />
+ 
+-    <!-- Whether to disable Night Light on Udfps keyguard -->
+-    <java-symbol type="bool" name="config_udfpsDisableNightLight" />
+-
+     <!-- App error dialog -->
+     <java-symbol type="id" name="aerr_copy" />
+     <java-symbol type="string" name="url_copy_success" />
+diff --git a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
+index 4e504939cec3..4d6b743b7e3e 100644
+--- a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
++++ b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
+@@ -34,7 +34,6 @@ import android.graphics.Point;
+ import android.graphics.RectF;
+ import android.hardware.biometrics.BiometricOverlayConstants;
+ import android.hardware.biometrics.SensorLocationInternal;
+-import android.hardware.display.ColorDisplayManager;
+ import android.hardware.display.DisplayManager;
+ import android.hardware.fingerprint.FingerprintManager;
+ import android.hardware.fingerprint.FingerprintSensorPropertiesInternal;
+@@ -170,10 +169,6 @@ public class UdfpsController implements DozeReceiver {
+     private final int mUdfpsVendorCode;
+     private Set<Callback> mCallbacks = new HashSet<>();
+ 
+-    private boolean mDisableNightMode;
+-    private boolean mNightModeActive;
+-    private int mAutoModeState;
+-
+     @VisibleForTesting
+     public static final AudioAttributes VIBRATION_SONIFICATION_ATTRIBUTES =
+             new AudioAttributes.Builder()
+@@ -252,9 +247,6 @@ public class UdfpsController implements DozeReceiver {
+         @Override
+         public void showUdfpsOverlay(int sensorId, int reason,
+                 @NonNull IUdfpsOverlayControllerCallback callback) {
+-            if (mDisableNightMode) {
+-                disableNightMode();
+-            }
+             mFgExecutor.execute(() -> {
+                 final UdfpsEnrollHelper enrollHelper;
+                 if (reason == BiometricOverlayConstants.REASON_ENROLL_FIND_SENSOR
+@@ -270,9 +262,6 @@ public class UdfpsController implements DozeReceiver {
+ 
+         @Override
+         public void hideUdfpsOverlay(int sensorId) {
+-            if (mDisableNightMode) {
+-                setNightMode(mNightModeActive, mAutoModeState);
+-            }
+             mFgExecutor.execute(() -> {
+                 if (mKeyguardUpdateMonitor.isFingerprintDetectionRunning()) {
+                     // if we get here, we expect keyguardUpdateMonitor's fingerprintRunningState
+@@ -678,24 +667,6 @@ public class UdfpsController implements DozeReceiver {
+ 
+         udfpsHapticsSimulator.setUdfpsController(this);
+         mUdfpsVendorCode = mContext.getResources().getInteger(R.integer.config_udfpsVendorCode);
+-        mDisableNightMode = mContext.getResources().getBoolean(com.android.internal.R.bool.config_udfpsDisableNightLight);
+-    }
+-
+-    private void disableNightMode() {
+-        ColorDisplayManager colorDisplayManager = mContext.getSystemService(ColorDisplayManager.class);
+-        mAutoModeState = colorDisplayManager.getNightDisplayAutoMode();
+-        mNightModeActive = colorDisplayManager.isNightDisplayActivated();
+-        colorDisplayManager.setNightDisplayActivated(false);
+-    }
+-
+-    private void setNightMode(boolean activated, int autoMode) {
+-        ColorDisplayManager colorDisplayManager = mContext.getSystemService(ColorDisplayManager.class);
+-        colorDisplayManager.setNightDisplayAutoMode(0);
+-        if (autoMode == 0) {
+-            colorDisplayManager.setNightDisplayActivated(activated);
+-        } else if (autoMode == 1 || autoMode == 2) {
+-            colorDisplayManager.setNightDisplayAutoMode(autoMode);
+-        }
+     }
+ 
+     /**
+-- 
+2.34.1
+

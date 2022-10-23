@@ -1,0 +1,60 @@
+From d836d0bf5f95ccd6ca057c88d8fa7c5676c591cc Mon Sep 17 00:00:00 2001
+From: ChonDoit <thphantomblog@gmail.com>
+Date: Sat, 22 Oct 2022 19:39:34 +0000
+Subject: [PATCH] Revert "Fix NPE for UDFPS devices without HBM"
+
+This reverts commit 8286585b32194298d33fdfdd4bdcbfe67212adc1.
+---
+ .../systemui/biometrics/UdfpsView.java        | 30 ++++++++-----------
+ 1 file changed, 13 insertions(+), 17 deletions(-)
+
+diff --git a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsView.java b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsView.java
+index e4cbb527d338..ee4cb15de410 100644
+--- a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsView.java
++++ b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsView.java
+@@ -242,20 +242,18 @@ public class UdfpsView extends FrameLayout implements DozeReceiver, UdfpsIllumin
+         if (mGhbmView != null && surface == null) {
+             Log.e(TAG, "doIlluminate | surface must be non-null for GHBM");
+         }
+-        if (mHbmProvider != null) {
+-            mHbmProvider.enableHbm(mHbmType, surface, () -> {
+-                if (mGhbmView != null) {
+-                    mGhbmView.drawIlluminationDot(mSensorRect);
+-                }
+-                if (onIlluminatedRunnable != null) {
+-                    // No framework API can reliably tell when a frame reaches the panel. A timeout
+-                    // is the safest solution.
+-                    postDelayed(onIlluminatedRunnable, mOnIlluminatedDelayMs);
+-                } else {
+-                    Log.w(TAG, "doIlluminate | onIlluminatedRunnable is null");
+-                }
+-            });
+-        }
++        mHbmProvider.enableHbm(mHbmType, surface, () -> {
++            if (mGhbmView != null) {
++                mGhbmView.drawIlluminationDot(mSensorRect);
++            }
++            if (onIlluminatedRunnable != null) {
++                // No framework API can reliably tell when a frame reaches the panel. A timeout
++                // is the safest solution.
++                postDelayed(onIlluminatedRunnable, mOnIlluminatedDelayMs);
++            } else {
++                Log.w(TAG, "doIlluminate | onIlluminatedRunnable is null");
++            }
++        });
+     }
+ 
+     @Override
+@@ -268,8 +266,6 @@ public class UdfpsView extends FrameLayout implements DozeReceiver, UdfpsIllumin
+             mGhbmView.setGhbmIlluminationListener(null);
+             mGhbmView.setVisibility(View.INVISIBLE);
+         }
+-        if (mHbmProvider != null) {
+-            mHbmProvider.disableHbm(null /* onHbmDisabled */);
+-        }
++        mHbmProvider.disableHbm(null /* onHbmDisabled */);
+     }
+ }
+-- 
+2.34.1
+

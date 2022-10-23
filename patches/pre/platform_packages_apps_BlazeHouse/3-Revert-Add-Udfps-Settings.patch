@@ -1,0 +1,227 @@
+From 1d56e99f42149877a716cb73ac513d9276d07659 Mon Sep 17 00:00:00 2001
+From: ChonDoit <thphantomblog@gmail.com>
+Date: Sun, 23 Oct 2022 17:12:09 +0000
+Subject: [PATCH] Revert "BlazeHouse: Add Udfps Settings"
+
+This reverts commit c8d2bc515e04b583c939c92972c20f1602e8f3e9.
+---
+ res/values/strings.xml                        |  7 --
+ res/xml/lockscreen.xml                        | 14 +---
+ res/xml/udfps.xml                             | 17 ----
+ .../blaze/house/categories/Lockscreen.java    | 13 ----
+ src/com/blaze/house/fragments/Udfps.java      | 78 -------------------
+ 5 files changed, 1 insertion(+), 128 deletions(-)
+ delete mode 100644 res/xml/udfps.xml
+ delete mode 100644 src/com/blaze/house/fragments/Udfps.java
+
+diff --git a/res/values/strings.xml b/res/values/strings.xml
+index 7445ac8..edafd32 100644
+--- a/res/values/strings.xml
++++ b/res/values/strings.xml
+@@ -46,7 +46,6 @@
+     <string name="themes_category">Themes</string>
+     <string name="build_tweaks_summary_title">Get Amazed with BLAZE!!!</string>
+     <string name="listview">ListView</string>
+-    <string name="udfps_category">UDFPS</string>
+     <string name = "general_category">General</string> 
+     
+     <!-- App info dialog -->
+@@ -296,11 +295,6 @@
+     <string name="qs_date_summary">Display date in quick status bar header</string>
+     <string name="status_bar_show_clock_bg">Show clock background chip</string>
+ 
+-    <!-- UDFPS Haptic Feedback -->
+-    <string name="udfps_haptic_feedback_title">UDFPS haptic feedback</string>
+-    <string name="udfps_haptic_feedback_summary">Vibrate when touching UDFPS icon</string>
+-    <string name="udfps_settings_title">UDFPS settings</string>
+-
+     <!-- Ignore secure window -->
+     <string name="developer_options_category">Developer Options</string>
+     <string name="ignore_window_secure_title">Ignore window secure flags</string>
+@@ -465,5 +459,4 @@
+     <string name="ticker_animation_mode_alpha_fade">Fade</string>
+     <string name="ticker_animation_mode_scroll">Scroll</string>
+     <string name="ticker_tick_duration_title">Ticker duration</string>
+-    <string name="udfps_settings_summary">Customizations for the UDFPS</string>
+ </resources>
+diff --git a/res/xml/lockscreen.xml b/res/xml/lockscreen.xml
+index 7af7aef..ee02739 100644
+--- a/res/xml/lockscreen.xml
++++ b/res/xml/lockscreen.xml
+@@ -117,22 +117,10 @@
+         android:fragment="com.blaze.house.fragments.PulseSettings" />
+     </PreferenceCategory>
+ 
+-    <!-- Udfps options -->
+-    <PreferenceCategory
+-        android:key="udfps_category"
+-        android:title="@string/udfps_category">
+-
+-        <Preference
+-            android:key="udfps_settings"
+-            android:title="@string/udfps_settings_title"
+-            android:summary="@string/udfps_settings_summary"
+-            android:fragment="com.blaze.house.fragments.Udfps" />
+-
+-    </PreferenceCategory>
+-
+     <PreferenceCategory
+         android:key="lockscreen_general_category"
+         android:title="@string/general_category">
++</PreferenceScreen>
+ 
+         <com.blaze.house.preferences.SystemSettingSwitchPreference 
+              android:key="use_wp_zoom"
+diff --git a/res/xml/udfps.xml b/res/xml/udfps.xml
+deleted file mode 100644
+index b4e6dac..0000000
+--- a/res/xml/udfps.xml
++++ /dev/null
+@@ -1,17 +0,0 @@
+-<?xml version="1.0" encoding="utf-8"?>
+-<!--
+-     Copyright (C) 2022 Project Blaze
+-     SPDX-License-Identifier: Apache-2.0
+--->
+-<PreferenceScreen
+-    xmlns:android="http://schemas.android.com/apk/res/android"
+-    xmlns:settings="http://schemas.android.com/apk/res/com.android.settings"
+-    android:title="@string/udfps_category">
+-
+-    <com.blaze.house.preferences.SystemSettingSwitchPreference
+-        android:key="udfps_haptic_feedback"
+-        android:title="@string/udfps_haptic_feedback_title"
+-        android:summary="@string/udfps_haptic_feedback_summary"
+-        android:defaultValue="true" />
+-
+-</PreferenceScreen>
+diff --git a/src/com/blaze/house/categories/Lockscreen.java b/src/com/blaze/house/categories/Lockscreen.java
+index a566b66..1562403 100644
+--- a/src/com/blaze/house/categories/Lockscreen.java
++++ b/src/com/blaze/house/categories/Lockscreen.java
+@@ -16,15 +16,10 @@
+ 
+ package com.blaze.house.categories;
+ 
+-import com.android.internal.util.blaze.udfps.UdfpsUtils;
+-import android.os.ParcelFileDescriptor;
+-import android.app.Activity;
+-
+ import android.content.ContentResolver;
+ import android.os.Bundle;
+ import androidx.preference.Preference;
+ import androidx.preference.PreferenceScreen;
+-import androidx.preference.PreferenceCategory;
+ 
+ import com.android.internal.logging.nano.MetricsProto;
+ import com.android.settings.R;
+@@ -34,22 +29,14 @@ public class Lockscreen extends SettingsPreferenceFragment implements
+         Preference.OnPreferenceChangeListener {
+ 
+     private static final String TAG = "Lockscreen";
+-    private static final String UDFPS_CATEGORY = "udfps_category";
+-
+-      private PreferenceCategory mUdfpsCategory;
+ 
+     @Override
+     public void onCreate(Bundle savedInstanceState) {
+         super.onCreate(savedInstanceState);
+ 
+         addPreferencesFromResource(R.xml.lockscreen);
+-	final PreferenceScreen prefSet = getPreferenceScreen();
+ 
+         ContentResolver resolver = getActivity().getContentResolver();
+-	mUdfpsCategory = findPreference(UDFPS_CATEGORY);
+-        if (!UdfpsUtils.hasUdfpsSupport(getContext())) {
+-            prefSet.removePreference(mUdfpsCategory);
+-        }
+     }
+ 
+     @Override
+diff --git a/src/com/blaze/house/fragments/Udfps.java b/src/com/blaze/house/fragments/Udfps.java
+deleted file mode 100644
+index 83ca00e..0000000
+--- a/src/com/blaze/house/fragments/Udfps.java
++++ /dev/null
+@@ -1,78 +0,0 @@
+-/*
+- * Copyright (C) 2017-2022 The Project-Xtended
+- *
+- * Licensed under the Apache License, Version 2.0 (the "License");
+- * you may not use this file except in compliance with the License.
+- * You may obtain a copy of the License at
+- *
+- *      http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-package com.blaze.house.fragments;
+-
+-import android.app.Activity;
+-import android.app.WallpaperManager;
+-import android.content.ContentResolver;
+-import android.content.Context;
+-import android.content.Intent;
+-import android.content.res.Resources;
+-import android.hardware.fingerprint.FingerprintManager;
+-import android.net.Uri;
+-import android.os.Bundle;
+-import android.os.UserHandle;
+-import android.provider.Settings;
+-
+-import androidx.preference.ListPreference;
+-import androidx.preference.Preference.OnPreferenceChangeListener;
+-import androidx.preference.Preference;
+-import androidx.preference.PreferenceCategory;
+-import androidx.preference.PreferenceFragment;
+-import androidx.preference.PreferenceManager;
+-import androidx.preference.PreferenceScreen;
+-import androidx.preference.SwitchPreference;
+-
+-import com.android.internal.logging.nano.MetricsProto;
+-import com.android.internal.util.blaze.BlazeUtils;
+-
+-import com.android.settings.R;
+-import com.android.settings.SettingsPreferenceFragment;
+-import com.android.settings.search.BaseSearchIndexProvider;
+-import com.android.settingslib.search.SearchIndexable;
+-
+-@SearchIndexable(forTarget = SearchIndexable.ALL & ~SearchIndexable.ARC)
+-public class Udfps extends SettingsPreferenceFragment implements
+-        Preference.OnPreferenceChangeListener {
+-
+-
+-    @Override
+-    public void onCreate(Bundle icicle) {
+-        super.onCreate(icicle);
+-        addPreferencesFromResource(R.xml.udfps);
+-
+-        final PreferenceScreen prefSet = getPreferenceScreen();
+-        Resources resources = getResources();
+-
+-    }
+-
+-    @Override
+-    public boolean onPreferenceChange(Preference preference, Object newValue) {
+-        ContentResolver resolver = getActivity().getContentResolver();
+-        return false;
+-    }
+-
+-    @Override
+-    public int getMetricsCategory() {
+-        return MetricsProto.MetricsEvent.BLAZE_HOUSE;
+-    }
+-
+-    /**
+-     * For Search.
+-     */
+-    public static final BaseSearchIndexProvider SEARCH_INDEX_DATA_PROVIDER =
+-            new BaseSearchIndexProvider(R.xml.udfps);
+-}
+-- 
+2.34.1
+

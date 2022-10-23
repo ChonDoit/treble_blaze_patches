@@ -1,0 +1,31 @@
+From c1ed7440e910fe48868acd0a8f7c22bf6642e07d Mon Sep 17 00:00:00 2001
+From: ChonDoit <thphantomblog@gmail.com>
+Date: Sat, 22 Oct 2022 19:46:41 +0000
+Subject: [PATCH] Revert "UdfpsController: Call onFingerDown on action down
+ events"
+
+This reverts commit 6021c7982001d51dc7db49c0116aea2127cd8a6e.
+---
+ .../src/com/android/systemui/biometrics/UdfpsController.java | 5 -----
+ 1 file changed, 5 deletions(-)
+
+diff --git a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
+index 167eea12503c..c84d74ebdb7b 100644
+--- a/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
++++ b/packages/SystemUI/src/com/android/systemui/biometrics/UdfpsController.java
+@@ -426,12 +426,7 @@ public class UdfpsController implements DozeReceiver {
+                     // We need to persist its ID to track it during ACTION_MOVE that could include
+                     // data for many other pointers because of multi-touch support.
+                     mActivePointerId = event.getPointerId(0);
+-                    final int idx = mActivePointerId == -1
+-                            ? event.getPointerId(0)
+-                            : event.findPointerIndex(mActivePointerId);
+                     mVelocityTracker.addMovement(event);
+-                    onFingerDown((int) event.getRawX(), (int) event.getRawY(),
+-                            (int) event.getTouchMinor(idx), (int) event.getTouchMajor(idx));
+                     handled = true;
+                 }
+                 if ((withinSensorArea || fromUdfpsView) && shouldTryToDismissKeyguard()) {
+-- 
+2.34.1
+
